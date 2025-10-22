@@ -6,23 +6,29 @@ import NodeModal from './components/NodeModal';
 import RelationshipConfigModal from './components/RelationshipConfigModal';
 import { ActionNode } from './types';
 
+type Position = { x: number; y: number };
+
 function App() {
   const [selectedNode, setSelectedNode] = useState<ActionNode | null>(null);
   const [isNodeModalOpen, setIsNodeModalOpen] = useState(false);
+  const [pendingNodePosition, setPendingNodePosition] = useState<Position | null>(null);
 
   const handleNodeClick = (node: ActionNode) => {
     setSelectedNode(node);
+    setPendingNodePosition(null);
     setIsNodeModalOpen(true);
   };
 
-  const handleNodeCreate = () => {
+  const handleNodeCreate = (position: Position) => {
     setSelectedNode(null);
+    setPendingNodePosition(position);
     setIsNodeModalOpen(true);
   };
 
   const handleNodeModalClose = () => {
     setIsNodeModalOpen(false);
     setSelectedNode(null);
+    setPendingNodePosition(null);
   };
 
   const handleNodeSave = () => {
@@ -41,9 +47,10 @@ function App() {
           onNodeUpdate={handleNodeSave}
           onEdgeCreate={() => {}}
         />
-        <NodeModal 
+        <NodeModal
           node={selectedNode}
           isOpen={isNodeModalOpen}
+          pendingPosition={pendingNodePosition}
           onClose={handleNodeModalClose}
         />
         <RelationshipConfigModal />
