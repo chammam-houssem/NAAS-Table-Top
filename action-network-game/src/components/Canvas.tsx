@@ -13,7 +13,12 @@ interface CanvasProps {
 const Canvas: React.FC<CanvasProps> = ({ onNodeClick, onNodeCreate }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { state, addNode, updateNode, addEdge } = useGameState();
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const isApplyingViewportRef = useRef(false);
+  const { state, addNode, updateNode, addEdge, updateViewport } = useGameState();
+  const previousNodesRef = useRef(state.nodes);
+  const previousEdgesRef = useRef(state.edges);
+  const previousViewportRef = useRef(state.viewport);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [linkingMode, setLinkingMode] = useState<{ active: boolean; sourceId: string; relationshipType: string } | null>(null);
@@ -36,6 +41,23 @@ const Canvas: React.FC<CanvasProps> = ({ onNodeClick, onNodeCreate }) => {
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0 || dimensions.height === 0) return;
 
+    const onlyViewportChanged =
+      previousNodesRef.current === state.nodes &&
+      previousEdgesRef.current === state.edges &&
+      (
+        previousViewportRef.current.zoom !== state.viewport.zoom ||
+        previousViewportRef.current.panX !== state.viewport.panX ||
+        previousViewportRef.current.panY !== state.viewport.panY
+      );
+
+    previousNodesRef.current = state.nodes;
+    previousEdgesRef.current = state.edges;
+    previousViewportRef.current = state.viewport;
+
+    if (onlyViewportChanged) {
+      return;
+    }
+
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
@@ -50,9 +72,23 @@ const Canvas: React.FC<CanvasProps> = ({ onNodeClick, onNodeCreate }) => {
       .scaleExtent([0.1, 4])
       .on('zoom', (event) => {
         g.attr('transform', event.transform);
+        if (!isApplyingViewportRef.current) {
+          const { k, x, y } = event.transform;
+          if (k !== state.viewport.zoom || x !== state.viewport.panX || y !== state.viewport.panY) {
+            updateViewport({ zoom: k, panX: x, panY: y });
+          }
+        }
       });
 
+    zoomBehaviorRef.current = zoom;
     svg.call(zoom);
+
+    const initialTransform = d3.zoomIdentity
+      .translate(state.viewport.panX, state.viewport.panY)
+      .scale(state.viewport.zoom);
+    isApplyingViewportRef.current = true;
+    svg.call(zoom.transform, initialTransform);
+    isApplyingViewportRef.current = false;
 
     // Create arena boundary visualization
     const arenaGroup = g.append('g').attr('class', 'arena-boundary');
@@ -305,7 +341,20 @@ const Canvas: React.FC<CanvasProps> = ({ onNodeClick, onNodeCreate }) => {
     return () => {
       simulation.stop();
     };
-  }, [state.nodes, state.edges, dimensions, selectedNode, linkingMode]);
+  }, [state.nodes, state.edges, dimensions, selectedNode, linkingMode, state.viewport.panX, state.viewport.panY, state.viewport.zoom, updateViewport]);
+
+  useEffect(() => {
+    if (!svgRef.current || !zoomBehaviorRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    const transform = d3.zoomIdentity
+      .translate(state.viewport.panX, state.viewport.panY)
+      .scale(state.viewport.zoom);
+
+    isApplyingViewportRef.current = true;
+    svg.call(zoomBehaviorRef.current.transform, transform);
+    isApplyingViewportRef.current = false;
+  }, [state.viewport.panX, state.viewport.panY, state.viewport.zoom]);
 
   const cancelLinking = () => {
     setLinkingMode(null);
