@@ -5,10 +5,11 @@ import { useGameState } from '../hooks/useGameState';
 interface NodeModalProps {
   node: ActionNode | null;
   isOpen: boolean;
+  pendingPosition: { x: number; y: number } | null;
   onClose: () => void;
 }
 
-const NodeModal: React.FC<NodeModalProps> = ({ node, isOpen, onClose }) => {
+const NodeModal: React.FC<NodeModalProps> = ({ node, isOpen, pendingPosition, onClose }) => {
   const { updateNode, addNode } = useGameState();
   const [formData, setFormData] = useState<{
     name?: string;
@@ -59,7 +60,7 @@ const NodeModal: React.FC<NodeModalProps> = ({ node, isOpen, onClose }) => {
     const nodeData: ActionNode = {
       id: node?.id || `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: formData.name!,
-      position: node?.position || { x: 400, y: 300 },
+      position: node?.position || pendingPosition || { x: 400, y: 300 },
       metadata: {
         authority: formData.authority!,
         digitalAccessibility: formData.digitalAccessibility || 'in-person',

@@ -239,12 +239,14 @@ const Canvas: React.FC<CanvasProps> = ({ onNodeClick, onNodeCreate }) => {
           const newNodeData = {
             name: 'New Action',
             position: { x: worldX, y: worldY },
-            authority: '',
-            digitalAccessibility: 'in-person' as const,
-            pppRole: '',
-            regulations: [],
-            caseStudies: [],
-            customFields: {},
+            metadata: {
+              authority: '',
+              digitalAccessibility: 'in-person' as const,
+              pppRole: '',
+              regulations: [],
+              caseStudies: [],
+              customFields: {},
+            },
             confidenceLevel: 0,
           };
           const newNodeId = addNode(newNodeData);
