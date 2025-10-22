@@ -1,0 +1,13 @@
+{
+  "name": "action-situations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ./scripts/dev.mjs",
+    "build": "node ./scripts/build.mjs",
+    "preview": "node ./scripts/dev.mjs",
+    "test": "node ./scripts/build.mjs && node dist/tests/schema.test.js && node dist/tests/store.test.js && node dist/tests/dynamics.test.js",
+    "lint": "node --no-warnings ./scripts/lint.mjs"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "jsxImportSource": "../src/utils/mini-react",
+    "strict": true,
+    "noEmitOnError": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "baseUrl": "./src",
+    "paths": {
+      "@app/*": ["app/*"],
+      "@components/*": ["components/*"],
+      "@canvas/*": ["canvas/*"],
+      "@state/*": ["state/*"],
+      "@schema/*": ["schema/*"],
+      "@data/*": ["data/*"],
+      "@views/*": ["views/*"],
+      "@styles/*": ["styles/*"],
+      "@utils/*": ["utils/*"],
+      "react": ["utils/mini-react"],
+      "react-dom": ["utils/mini-react-dom"],
+      "react/jsx-runtime": ["utils/mini-react-jsx-runtime"]
+    }
+  },
+  "include": ["src", "tests"],
+  "exclude": ["dist", "node_modules"]
+}
