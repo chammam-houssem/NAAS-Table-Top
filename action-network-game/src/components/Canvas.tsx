@@ -285,15 +285,9 @@ const Canvas: React.FC<CanvasProps> = ({ onNodeClick, onNodeCreate }) => {
             },
             confidenceLevel: 0,
           };
-          addNode(newNodeData);
-          // The new node will be created and we can link to it
-          setTimeout(() => {
-            const newNode = state.nodes[state.nodes.length - 1];
-            if (newNode) {
-              addEdge(linkingMode.sourceId, newNode.id, linkingMode.relationshipType);
-            }
-            setLinkingMode(null);
-          }, 100);
+          const newNodeId = addNode(newNodeData);
+          addEdge(linkingMode.sourceId, newNodeId, linkingMode.relationshipType);
+          setLinkingMode(null);
         } else {
           onNodeCreate({ x: worldX, y: worldY });
         }
