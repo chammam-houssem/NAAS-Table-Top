@@ -22,22 +22,31 @@ const initialGameState: GameState = {
 function gameStateReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'ADD_NODE': {
-      const newNode: ActionNode = {
-        id: action.payload.id,
-        name: action.payload.name,
-        position: action.payload.position,
-        metadata: {
-          authority: action.payload.authority || '',
-          digitalAccessibility: action.payload.digitalAccessibility || 'in-person',
-          pppRole: action.payload.pppRole || '',
-          regulations: action.payload.regulations || [],
-          caseStudies: action.payload.caseStudies || [],
-          customFields: action.payload.customFields || {},
-        },
-        confidenceLevel: action.payload.confidenceLevel || 0,
-        createdAt: Date.now(),
-        lastModified: Date.now(),
+      const incomingNode = action.payload as ActionNode;
+      const metadataDefaults: ActionNode['metadata'] = {
+        authority: '',
+        digitalAccessibility: 'in-person',
+        pppRole: '',
+        regulations: [],
+        caseStudies: [],
+        customFields: {},
       };
+
+      const fallbackTimestamp = Date.now();
+      const createdAt = incomingNode.createdAt ?? fallbackTimestamp;
+      const lastModified = incomingNode.lastModified ?? createdAt;
+
+      const newNode: ActionNode = {
+        ...incomingNode,
+        metadata: {
+          ...metadataDefaults,
+          ...(incomingNode.metadata || {}),
+        },
+        confidenceLevel: incomingNode.confidenceLevel ?? 0,
+        createdAt,
+        lastModified,
+      };
+
       return {
         ...state,
         nodes: [...state.nodes, newNode],
@@ -132,7 +141,7 @@ function gameStateReducer(state: GameState, action: GameAction): GameState {
 interface GameContextType {
   state: GameState;
   dispatch: React.Dispatch<GameAction>;
-  addNode: (nodeData: Partial<ActionNode>) => void;
+  addNode: (nodeData: Partial<ActionNode>) => ActionNode;
   updateNode: (node: ActionNode) => void;
   deleteNode: (nodeId: string) => void;
   addEdge: (sourceId: string, targetId: string, relationshipType: string) => void;
@@ -184,11 +193,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [state]);
 
   const addNode = (nodeData: Partial<ActionNode>) => {
-    const id = `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const now = Date.now();
+    const id = nodeData.id || `node_${now}_${Math.random().toString(36).substr(2, 9)}`;
+    const metadataDefaults: ActionNode['metadata'] = {
+      authority: '',
+      digitalAccessibility: 'in-person',
+      pppRole: '',
+      regulations: [],
+      caseStudies: [],
+      customFields: {},
+    };
+
+    const createdAt = nodeData.createdAt ?? now;
+    const lastModified = nodeData.lastModified ?? createdAt;
+
+    const persistedNode: ActionNode = {
+      ...(nodeData as ActionNode),
+      id,
+      name: nodeData.name || 'New Action',
+      position: nodeData.position || { x: 400, y: 300 },
+      metadata: {
+        ...metadataDefaults,
+        ...(nodeData.metadata || {}),
+      },
+      confidenceLevel: nodeData.confidenceLevel ?? 0,
+      createdAt,
+      lastModified,
+    };
+
     dispatch({
       type: 'ADD_NODE',
-      payload: { ...nodeData, id },
+      payload: persistedNode,
     });
+
+    return persistedNode;
   };
 
   const updateNode = (node: ActionNode) => {
