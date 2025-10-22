@@ -132,7 +132,7 @@ function gameStateReducer(state: GameState, action: GameAction): GameState {
 interface GameContextType {
   state: GameState;
   dispatch: React.Dispatch<GameAction>;
-  addNode: (nodeData: Partial<ActionNode>) => void;
+  addNode: (nodeData: Partial<ActionNode>) => string;
   updateNode: (node: ActionNode) => void;
   deleteNode: (nodeId: string) => void;
   addEdge: (sourceId: string, targetId: string, relationshipType: string) => void;
@@ -189,6 +189,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       type: 'ADD_NODE',
       payload: { ...nodeData, id },
     });
+    return id;
   };
 
   const updateNode = (node: ActionNode) => {
